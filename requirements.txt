@@ -1,4 +1,4 @@
 mcp
 chromadb
-
 PyExifTool
+gradio

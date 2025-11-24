@@ -1,3 +1,19 @@
+---
+title: iOS MCP Server
+emoji: 📱
+colorFrom: blue
+colorTo: gray
+sdk: gradio
+sdk_version: 5.0.0
+app_file: app.py
+pinned: false
+tags:
+  - building-mcp-track-consumer
+  - mcp
+  - ios
+  - agent
+---
+
 # iOS MCP Server
 
 A Model Context Protocol (MCP) server that allows Large Language Models (LLMs) to access, scan, and search files on a connected iOS device.
@@ -9,6 +25,16 @@ A Model Context Protocol (MCP) server that allows Large Language Models (LLMs) t
 -   **Exact Filtering**: Supports precise metadata filtering (e.g., `{"Model": "iPhone 12"}`).
 -   **Incremental Scanning**: "Execute once, query many" architecture. Scans are cached, so subsequent queries are instant.
 -   **Introspection**: Tools to discover available metadata fields and fix typos.
+
+## 🏆 MCP Hackathon Submission
+
+**Track:** `building-mcp-track-consumer`
+
+### 📺 Demo Video
+[Watch the Demo Video](LINK_TO_YOUR_VIDEO_HERE)
+
+### 👥 Team Members
+- [YourHFUsername](https://huggingface.co/YourHFUsername)
 
 ## Prerequisites
 
@@ -52,46 +78,22 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "ios-mcp": {
-      "command": "mcp",
-      "args": ["run", "/absolute/path/to/ios_mcp/src/server.py"]
+      "command": "python",
+      "args": ["/absolute/path/to/ios_mcp/src/server.py"]
     }
   }
 }
 ```
 
-#### VS Code (MCP Extension)
-Add to your `settings.json` (or `.vscode/settings.json`):
-```json
-{
-  "mcp.servers": {
-    "ios-mcp": {
-      "command": "mcp",
-      "args": ["run", "/absolute/path/to/ios_mcp/src/server.py"]
-    }
-  }
-}
-```
 
 #### Perplexity
 If using the Perplexity Desktop app or MCP integration:
 1.  Go to **Settings** > **MCP Servers**.
 2.  Add a new server:
     *   **Name**: `ios-mcp`
-    *   **Command**: `mcp`
-    *   **Args**: `run /absolute/path/to/ios_mcp/src/server.py`
+    *   **Command**: `python`
+    *   **Args**: `/absolute/path/to/ios_mcp/src/server.py`
 
-#### Antigravity / AI Agents
-To use this tool with Antigravity or other AI coding agents, ensure the server is registered in the agent's MCP configuration (often `mcp.json` or via the environment).
-
-**Generic Config**:
-```json
-{
-  "ios-mcp": {
-    "command": "mcp",
-    "args": ["run", "${workspaceFolder}/src/server.py"]
-  }
-}
-```
 
 ## Available Tools
 
@@ -101,9 +103,60 @@ To use this tool with Antigravity or other AI coding agents, ensure the server i
 | `scan_and_cache_photos` | Mounts the device, scans DCIM, and indexes metadata into the Vector DB. |
 | `search_files` | Semantic search using natural language (e.g., "Photos of sunset"). |
 | `filter_files` | Exact metadata filtering (e.g., `{"Flash": true}`). |
+| `count_files` | Count files matching semantic or exact criteria. |
+| `group_files` | Group files by a field and return counts (e.g., group by "Model"). |
+| `run_advanced_query` | Complex query with sorting, pagination, and projection. |
+| `run_aggregation_pipeline` | Multi-stage data processing pipeline (MongoDB style). |
 | `get_metadata_keys` | Lists all available metadata fields (columns). |
-| `find_similar_metadata_keys` | Finds valid keys similar to a typo (e.g., "Date" -> "DateTimeOriginal"). |
-| `get_file_content` | Reads the content of a specific file. |
+| `find_similar_metadata_keys` | Finds valid keys similar to a typo. |
+| `read_image` | Reads and resizes an image, returning base64 data. |
+| `get_file_content` | Reads the content of a text file. |
+| `mount_device_for_file_access` | Manually mount the device. |
+| `check_db_status` | Check database connection health. |
+
+## 🧠 Advanced Data Analysis
+
+The server supports powerful data analysis capabilities modeled after MongoDB.
+
+### Aggregation Pipeline (`run_aggregation_pipeline`)
+Process data through a multi-stage pipeline. Supported stages: `$match`, `$group`, `$project`, `$sort`, `$limit`, `$count`.
+
+**Example: Find camera models with average ISO > 200**
+```json
+[
+  {"$match": {"Make": "Apple"}},
+  {"$group": {
+    "_id": "$Model", 
+    "avg_iso": {"$avg": "$ISO"},
+    "count": {"$sum": 1}
+  }},
+  {"$match": {"avg_iso": {"$gt": 200}}},
+  {"$sort": {"count": -1}}
+]
+```
+
+### Advanced Querying (`run_advanced_query`)
+Perform complex queries with sorting and pagination.
+
+**Example: Get the 10 most recent photos**
+```json
+{
+  "where": {"MIMEType": "image/jpeg"},
+  "sort_by": "CreationDate",
+  "sort_order": "desc",
+  "limit": 10
+}
+```
+
+### Grouping (`group_files`)
+Quickly see the distribution of your files.
+- **Input**: `field="Model"`
+- **Output**: `{"iPhone 12": 150, "iPhone 13 Pro": 42}`
+
+## 🛠️ Utility Tools
+
+- **`read_image`**: Reads an image file (JPG, HEIC, etc.) from the device, resizes it (max 1024px), and returns a base64 encoded string. Useful for passing images to Vision-capable LLMs.
+- **`mount_device_for_file_access`**: Manually mounts the device if you need to perform operations outside the standard scan flow.
 
 ## Testing
 
