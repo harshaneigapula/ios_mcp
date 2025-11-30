@@ -21,11 +21,23 @@ with gr.Blocks() as demo:
     with gr.Tab("📺 Demo & Features"):
         gr.Markdown("### See it in action")
         # Placeholder for video - User needs to replace this or upload a video to the repo
-        # gr.Video(value="demo_video.mp4") 
+        gr.HTML(
+            """
+            <div style="display: flex; justify-content: center; align-items: center; width: 100%; margin-bottom: 20px;">
+                <iframe 
+                    src="https://drive.google.com/file/d/1yyqCKYXskhf4JLdMTkgvbPJ6gCqacOG3/preview" 
+                    width="640" 
+                    height="480" 
+                    allow="autoplay"
+                    style="border: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                </iframe>
+            </div>
+            <p style="text-align: center; color: #666; font-size: 0.9em;">
+            </p>
+            """
+        )
         gr.Markdown(
             """
-            *(Demo video coming soon!)*
-            
             ### Key Features
             - **Natural Language Search**: "Find photos with faces from last week"
             - **Advanced Analytics**: Grouping, Aggregation Pipelines, and SQL-like querying.

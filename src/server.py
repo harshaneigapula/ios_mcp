@@ -3,10 +3,10 @@ from typing import List, Dict, Any
 import os
 try:
     from .database import Database
-    from .device import mount_device, scan_photos, get_devices, get_device_info
+    from .device import mount_device, scan_photos, get_devices, get_device_info, unmount_device
 except ImportError:
     from database import Database
-    from device import mount_device, scan_photos, get_devices, get_device_info
+    from device import mount_device, scan_photos, get_devices, get_device_info, unmount_device
 
 # Initialize FastMCP server
 mcp = FastMCP("iOS MCP Server")
