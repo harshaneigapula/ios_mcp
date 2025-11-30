@@ -2,16 +2,18 @@
 title: iOS MCP Server
 emoji: 📱
 colorFrom: blue
-colorTo: gray
+colorTo: purple
 sdk: gradio
-sdk_version: 5.0.0
+sdk_version: 6.0.1
 app_file: app.py
 pinned: false
 tags:
-  - building-mcp-track-consumer
-  - mcp
-  - ios
-  - agent
+- building-mcp-track-consumer
+- mcp
+- ios
+- agent
+license: mit
+short_description: MCP Server to connect to IOS Devices locally
 ---
 
 # iOS MCP Server
