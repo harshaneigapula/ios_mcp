@@ -7,7 +7,7 @@ def get_readme_content():
     except Exception:
         return "# iOS MCP Server\n\nWelcome! This tool is designed to run locally with a physical iOS device connected."
 
-with gr.Blocks(theme=gr.themes.Soft()) as demo:
+with gr.Blocks() as demo:
     gr.Markdown(
         """
         # 📱 iOS MCP Server
@@ -27,7 +27,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
             *(Demo video coming soon!)*
             
             ### Key Features
-            - **Natural Language Search**: "Find photos of my cat from last week"
+            - **Natural Language Search**: "Find photos with faces from last week"
             - **Advanced Analytics**: Grouping, Aggregation Pipelines, and SQL-like querying.
             - **Metadata Filtering**: Query by ISO, Model, Location, etc.
             - **Privacy First**: PII masking and local processing.
