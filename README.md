@@ -20,6 +20,8 @@ short_description: MCP Server to connect to IOS Devices locally
 
 A Model Context Protocol (MCP) server that allows Large Language Models (LLMs) to access, scan, and search photos on a connected iOS device.
 
+### 📺 [Watch the Demo Video](https://drive.google.com/file/d/1yyqCKYXskhf4JLdMTkgvbPJ6gCqacOG3/view?usp=sharing)
+
 ## Features
 
 -   **Device Access**: Connects to iPhone via USB using `libimobiledevice`.
