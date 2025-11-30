@@ -39,6 +39,9 @@ A Model Context Protocol (MCP) server that allows Large Language Models (LLMs) t
 ### 👥 Team Members
 - [harshaneigapula](https://huggingface.co/harshaneigapula)
 
+### 📢 Social Media Post
+- [LinkedIn Submission Post](https://www.linkedin.com/posts/harsha-neigapula_genai-appleintelligence-mcp-activity-7400967108257566720-qkys?utm_source=share&utm_medium=member_desktop&rcm=ACoAAA0zp78BxBTd9sGA6ASEC72oTtD5eqi-_6E)
+
 ## Prerequisites
 
 1.  **macOS**: This tool relies on macOS-specific tools for iOS connectivity.
