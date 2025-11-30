@@ -25,6 +25,7 @@ A Model Context Protocol (MCP) server that allows Large Language Models (LLMs) t
 ## Features
 
 -   **Device Access**: Connects to iPhone via USB using `libimobiledevice`.
+-   **Smart File Copying**: Organize and copy files to your computer with auto-renaming based on metadata.
 -   **Semantic Search**: Uses **ChromaDB** (Vector Database) to enable natural language search (e.g., "Find photos of my trip to Paris").
 -   **Exact Filtering**: Supports precise metadata filtering (e.g., `{"Model": "iPhone 12"}`).
 -   **Incremental Scanning**: "Execute once, query many" architecture. Scans are cached, so subsequent queries are instant.
@@ -112,6 +113,7 @@ If using the Perplexity Desktop app or MCP integration:
 | `get_metadata_keys` | Lists all available metadata fields (columns). |
 | `find_similar_metadata_keys` | Finds valid keys similar to a typo. |
 | `read_image` | Reads and resizes an image, returning base64 data. |
+| `copy_files_to_local` | Copies files to a local directory, with optional renaming. |
 | `mount_device_for_file_access` | Manually mount the device. |
 | `check_db_status` | Check database connection health. |
 
@@ -153,6 +155,23 @@ Perform complex queries with sorting and pagination.
 Quickly see the distribution of your files.
 - **Input**: `field="Model"`
 - **Output**: `{"iPhone 12": 150, "iPhone 13 Pro": 42}`
+
+## 📂 File Management
+
+### Copying & Organizing Files (`copy_files_to_local`)
+The `copy_files_to_local` tool allows you to copy files from the iOS device to your local machine. 
+
+**Key Feature: Renaming for Organization**
+You can provide a list of `new_filenames` matching the source files. This is powerful when combined with metadata. For example, you can rename files based on their creation date or location to organize them automatically.
+
+**Example: Copy and Rename**
+```python
+# Conceptual example of what the LLM does
+source_files = ["/tmp/iphone/DCIM/IMG_001.JPG", "/tmp/iphone/DCIM/IMG_002.JPG"]
+new_names = ["2024-01-01_Paris_001.jpg", "2024-01-01_Paris_002.jpg"]
+
+copy_files_to_local(source_paths=source_files, destination_folder="/Users/me/Photos", new_filenames=new_names)
+```
 
 ## 🛠️ Utility Tools
 

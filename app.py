@@ -40,6 +40,7 @@ with gr.Blocks() as demo:
             """
             ### Key Features
             - **Natural Language Search**: "Find photos with faces from last week"
+            - **Smart File Copying**: Organize and copy files to your computer with auto-renaming.
             - **Advanced Analytics**: Grouping, Aggregation Pipelines, and SQL-like querying.
             - **Metadata Filtering**: Query by ISO, Model, Location, etc.
             - **Privacy First**: PII masking and local processing.

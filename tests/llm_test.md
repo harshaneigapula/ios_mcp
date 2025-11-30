@@ -76,6 +76,11 @@ Once connected to the LLM, try the following prompts to verify different capabil
 *   **"Read the first image found in the previous search."**
     *   *Expected*: Should call `read_image` with the file path and return a base64 string (or describe the image if the LLM supports vision).
 
+### 7. File Management
+
+*   **"Copy the first 2 photos found to '/tmp/photos' and rename them to 'photo1.jpg' and 'photo2.jpg'."**
+    *   *Expected*: Should call `copy_files_to_local` with the source paths, destination folder, and new filenames.
+
 ---
 
 ## Troubleshooting
