@@ -16,7 +16,7 @@ tags:
 
 # iOS MCP Server
 
-A Model Context Protocol (MCP) server that allows Large Language Models (LLMs) to access, scan, and search files on a connected iOS device.
+A Model Context Protocol (MCP) server that allows Large Language Models (LLMs) to access, scan, and search photos on a connected iOS device.
 
 ## Features
 
@@ -30,11 +30,9 @@ A Model Context Protocol (MCP) server that allows Large Language Models (LLMs) t
 
 **Track:** `building-mcp-track-consumer`
 
-### 📺 Demo Video
-[Watch the Demo Video](LINK_TO_YOUR_VIDEO_HERE)
 
 ### 👥 Team Members
-- [YourHFUsername](https://huggingface.co/YourHFUsername)
+- [harshaneigapula](https://huggingface.co/harshaneigapula)
 
 ## Prerequisites
 
@@ -101,7 +99,7 @@ If using the Perplexity Desktop app or MCP integration:
 |------|-------------|
 | `list_connected_devices` | Lists UDIDs of connected iOS devices. |
 | `scan_and_cache_photos` | Mounts the device, scans DCIM, and indexes metadata into the Vector DB. |
-| `search_files` | Semantic search using natural language (e.g., "Photos of sunset"). |
+| `search_files` | Semantic search using natural language for photos based on Photo Metadata (e.g., "Photos of Apple 12 taken during 2024"). |
 | `filter_files` | Exact metadata filtering (e.g., `{"Flash": true}`). |
 | `count_files` | Count files matching semantic or exact criteria. |
 | `group_files` | Group files by a field and return counts (e.g., group by "Model"). |
@@ -110,7 +108,6 @@ If using the Perplexity Desktop app or MCP integration:
 | `get_metadata_keys` | Lists all available metadata fields (columns). |
 | `find_similar_metadata_keys` | Finds valid keys similar to a typo. |
 | `read_image` | Reads and resizes an image, returning base64 data. |
-| `get_file_content` | Reads the content of a text file. |
 | `mount_device_for_file_access` | Manually mount the device. |
 | `check_db_status` | Check database connection health. |
 
@@ -155,7 +152,7 @@ Quickly see the distribution of your files.
 
 ## 🛠️ Utility Tools
 
-- **`read_image`**: Reads an image file (JPG, HEIC, etc.) from the device, resizes it (max 1024px), and returns a base64 encoded string. Useful for passing images to Vision-capable LLMs.
+- **`read_image`**: Reads an image file (JPG, HEIC, etc.) from the device, resizes it (max 1024px), and returns a base64 encoded string. Useful for passing images to Vision-capable LLMs. (Most of the LLMs don't support image input as of now. More testing is needed here.)
 - **`mount_device_for_file_access`**: Manually mounts the device if you need to perform operations outside the standard scan flow.
 
 ## Testing

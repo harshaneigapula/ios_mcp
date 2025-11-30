@@ -223,28 +223,6 @@ def read_image(file_path: str) -> str:
     except Exception as e:
         return f"Error reading image: {e}"
 
-@mcp.tool()
-def get_file_content(file_path: str) -> str:
-    """
-    Read the content of a file from the mounted device.
-    WARNING: Only use for text files or small checks. For binary, we might need another approach.
-    """
-    # Security check: ensure path is within mount point
-    if not file_path.startswith(MOUNT_POINT):
-        return "Access denied: File is outside the mount point."
-        
-    if not os.path.exists(file_path):
-        return "File not found."
-        
-    try:
-        # If it's an image, return a summary
-        if file_path.lower().endswith(('.jpg', '.jpeg', '.png', '.heic')):
-            return f"Binary image file at {file_path}. Use 'read_image' tool to get the content."
-            
-        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-            return f.read()
-    except Exception as e:
-        return f"Error reading file: {e}"
 
 @mcp.tool()
 def check_db_status() -> str:

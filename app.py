@@ -12,7 +12,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
         """
         # 📱 iOS MCP Server
         
-        **Connect your iPhone to Claude/LLMs for advanced file querying and management.**
+        **Connect your iPhone to Claude/LLMs for advanced photos querying using Photos Metadata and management.**
         
         > ⚠️ **NOTE:** This Space is a demo/landing page. The actual MCP server requires a physical USB connection to an iOS device and must be run locally on your machine (macOS/Linux).
         """
@@ -61,11 +61,11 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
             {
               "mcpServers": {
                 "ios-mcp": {
-                  "command": "uv",
-                  "args": ["--directory", "/path/to/ios_mcp", "run", "src/server.py"]
+                  "command": "python",
+                  "args": ["/absolute/path/to/ios_mcp/src/server.py"]
                 }
               }
-            }
+}
             ```
             """
         )
