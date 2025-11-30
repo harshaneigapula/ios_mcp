@@ -1,9 +1,0 @@
-{
-    "ios-mcp": {
-        "command": "mcp",
-        "args": [
-            "run",
-            "/Users/harsha/GitProjects/ios_mcp/src/server.py"
-        ]
-    }
-}
