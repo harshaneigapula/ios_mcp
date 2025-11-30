@@ -51,7 +51,7 @@ A Model Context Protocol (MCP) server that allows Large Language Models (LLMs) t
 
 1.  Clone the repository:
     ```bash
-    git clone <your-repo-url>
+    git clone https://github.com/harshaneigapula/ios_mcp
     cd ios_mcp
     ```
 
