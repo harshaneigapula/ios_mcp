@@ -179,7 +179,29 @@ def unmount_device(mount_point: str) -> Tuple[bool, str]:
             return True, "Unmount Success (diskutil)"
         return False, f"Unmount Failed: {err}"
 
-def scan_photos(mount_point: str, existing_files: set = None) -> List[Dict[str, Any]]:
+def process_chunk(chunk: List[str]) -> List[Dict[str, Any]]:
+    """
+    Helper to process a single chunk of files with ExifTool.
+    """
+    try:
+        with exiftool.ExifToolHelper(check_execute=False) as et:
+            return et.get_metadata(chunk)
+    except Exception as e:
+        print(f"Error processing chunk: {e}")
+        return []
+
+def scan_photos(mount_point: str, existing_files: set = None, callback: Optional[Any] = None, max_workers: int = 4) -> List[Dict[str, Any]]:
+    """
+    Scans for photos and extracts metadata.
+    
+    Args:
+        mount_point: Path to the mounted device.
+        existing_files: Set of file paths to skip.
+        callback: Optional function to call with each chunk of metadata (List[Dict]).
+        max_workers: Number of parallel workers for EXIF extraction.
+    """
+    import concurrent.futures
+    
     dcim_path = os.path.join(mount_point, "DCIM")
     all_paths = []
     
@@ -188,7 +210,8 @@ def scan_photos(mount_point: str, existing_files: set = None) -> List[Dict[str, 
         return []
 
     for root, dirs, files in os.walk(dcim_path):
-        for f in files[0:100]:
+        # print(root, len(files)) # Reduce noise
+        for f in files:
             lower_f = f.lower()
             if lower_f.endswith(('.jpg', '.jpeg', '.png', '.heic', '.mov', '.mp4')):
                 full_path = os.path.join(root, f)
@@ -201,15 +224,23 @@ def scan_photos(mount_point: str, existing_files: set = None) -> List[Dict[str, 
         return []
 
     metadata_list = []
-    try:
-        with exiftool.ExifToolHelper(check_execute=False) as et:
-            # Process in chunks to avoid command line length limits if many files
-            chunk_size = 100
-            for i in range(0, len(all_paths), chunk_size):
-                chunk = all_paths[i:i + chunk_size]
-                metadata = et.get_metadata(chunk)
-                metadata_list.extend(metadata)
-    except Exception as e:
-        print(f"Error extracting metadata: {e}")
+    chunk_size = 50 # Smaller chunk size for better parallelism with threads
+    chunks = [all_paths[i:i + chunk_size] for i in range(0, len(all_paths), chunk_size)]
+    
+    print(f"Processing {len(all_paths)} files in {len(chunks)} chunks with {max_workers} workers...")
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all chunks
+        future_to_chunk = {executor.submit(process_chunk, chunk): chunk for chunk in chunks}
+        
+        for future in concurrent.futures.as_completed(future_to_chunk):
+            try:
+                data = future.result()
+                if data:
+                    if callback:
+                        callback(data)
+                    metadata_list.extend(data)
+            except Exception as e:
+                print(f"Chunk processing failed: {e}")
         
     return metadata_list

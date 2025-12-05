@@ -1,5 +1,6 @@
 from mcp.server.fastmcp import FastMCP
 from typing import List, Dict, Any
+from mcp.server.fastmcp.utilities.types import Image
 import os
 try:
     from .database import Database
@@ -52,13 +53,21 @@ def scan_and_cache_photos() -> str:
     try:
         # Optimization: Fetch existing files map to skip re-scanning
         existing_files = db.get_existing_files_map()
-        metadata_list = scan_photos(MOUNT_POINT, existing_files=existing_files)
+        
+        # Callback to insert data as soon as it is processed
+        def insert_chunk(chunk: List[Dict[str, Any]]):
+            if chunk:
+                db.upsert_files(chunk)
+                print(f"Inserted chunk of {len(chunk)} files")
+
+        metadata_list = scan_photos(MOUNT_POINT, existing_files=existing_files, callback=insert_chunk)
     except Exception as e:
         return f"Error scanning photos: {e}"
         
-    # 3. Cache
+    # 3. Final Report
     if metadata_list:
-        db.upsert_files(metadata_list)
+        # Note: upsert_files is now called incrementally via callback.
+        # We might want to do a final upsert if any were missed, but callback handles all.
         return f"Successfully indexed {len(metadata_list)} new files. (Skipped {len(existing_files)})"
     else:
         return f"No new files found. (Already cached {len(existing_files)})"
@@ -150,13 +159,30 @@ def unmount_device_for_file_access():
     return "Unmounted successfully"
 
 @mcp.tool()
-def get_metadata_keys() -> str:
+def get_metadata_categories() -> str:
     """
-    Get a list of all available metadata keys (columns) in the database.
-    Use this to understand what fields you can filter by.
+    Get a list of available metadata categories (prefixes).
+    Example output: ['EXIF', 'IPTC', 'XMP', 'General']
+    Use this first to see what kind of metadata is available.
     """
-    keys = list(db.get_all_keys())
-    keys.sort()
+    keys = db.get_cached_keys(category=None)
+    return str(keys)
+
+@mcp.tool()
+def get_metadata_keys(category: str = None, refresh: bool = False) -> str:
+    """
+    Get available metadata keys.
+    
+    Args:
+        category: Optional. If provided, returns keys for that category (e.g. "EXIF").
+                  If None (default), returns a list of available CATEGORIES (prefixes).
+        refresh: Optional. If True, forces a re-scan of the database to update the cache.
+        
+    Usage:
+    1. Call `get_metadata_categories()` to see available categories.
+    2. Call `get_metadata_keys(category='EXIF')` to see all EXIF keys.
+    """
+    keys = db.get_cached_keys(category=category, refresh=refresh)
     return str(keys)
 
 @mcp.tool()
@@ -172,67 +198,19 @@ def find_similar_metadata_keys(key_name: str) -> str:
         return "No similar keys found."
 
 @mcp.tool()
-def read_image(file_path: str) -> str:
+def read_image(file_path: str) -> Image:
     """
-    Read an image file from the mounted device and return it as a JSON string with base64 encoded content.
-    Supports standard images (JPG, PNG) and automatically converts HEIC to JPEG.
-    
-    IMPORTANT: Resizes the image to keep the payload small for LLM consumption.
-    
-    Output Format:
-    {
-        "type": "image",
-        "data": "BASE64_STRING",
-        "mimeType": "image/jpeg"
-    }
+    Read an image file from the mounted device.
     """
-    import base64
-    import subprocess
-    import tempfile
-    import json
-    import mimetypes
     
     # Security check: ensure path is within mount point
     if not file_path.startswith(MOUNT_POINT):
-        return "Access denied: File is outside the mount point."
+        raise ValueError("Access denied: File is outside the mount point.")
         
     if not os.path.exists(file_path):
-        return "File not found."
+        raise ValueError("File not found.")
         
-    try:
-        # Always use a temp file for resizing
-        with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
-            tmp_path = tmp.name
-            
-        try:
-            # Use sips to resize and convert to JPEG
-            # -Z 128: Resample height and width to max 128px
-            # -s format jpeg: Output as JPEG
-            cmd = ["sips", "-Z", "1024", "-s", "format", "jpeg", file_path, "--out", tmp_path]
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            
-            if result.returncode != 0:
-                return f"Error processing image: {result.stderr}"
-                
-            with open(tmp_path, "rb") as image_file:
-                encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-            
-            mime_type = "image/jpeg"
-                
-        finally:
-            if os.path.exists(tmp_path):
-                os.remove(tmp_path)
-
-        # Construct JSON response
-        response = {
-            "type": "image",
-            "data": encoded_string,
-            "mimeType": mime_type
-        }
-        return json.dumps(response)
-            
-    except Exception as e:
-        return f"Error reading image: {e}"
+    return Image(path=file_path)
 
 
 @mcp.tool()

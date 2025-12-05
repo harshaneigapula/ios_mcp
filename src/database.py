@@ -8,6 +8,7 @@ class Database:
     def __init__(self, db_path: str = "/Users/harsha/GitProjects/ios_mcp/chroma_db"):
         self.client = chromadb.PersistentClient(path=db_path)
         self.collection = self.client.get_or_create_collection(name="files")
+        self.cache_path = os.path.join(db_path, "metadata_keys.json")
 
     def upsert_files(self, metadata_list: List[Dict[str, Any]]):
         """
@@ -118,20 +119,111 @@ class Database:
         self.client.delete_collection("files")
         self.collection = self.client.get_or_create_collection(name="files")
 
-    def get_all_keys(self) -> Set[str]:
+    def _scan_all_keys_from_db(self) -> Set[str]:
         """
-        Get all unique metadata keys (columns) present in the database.
-        Note: This can be expensive as it iterates over all records.
+        Internal method: Scan the database for all unique metadata keys.
+        This is expensive and should only be used to update the cache.
         """
         keys = set()
-        # Chroma doesn't have a schema, so we must scan.
-        # Optimization: We could cache this set and update it on upsert.
-        # For now, let's scan.
         results = self.collection.get(include=['metadatas'])
         if results['metadatas']:
             for meta in results['metadatas']:
                 keys.update(meta.keys())
         return keys
+
+    def get_all_keys(self) -> Set[str]:
+        """
+        Get all unique metadata keys (columns) present in the database.
+        Uses the cache for performance.
+        """
+        # Use get_cached_keys to retrieve everything (category=None returns prefixes, 
+        # but we want ALL keys here? Wait.
+        # get_cached_keys(category=None) returns CATEGORIES.
+        # We need a way to get ALL keys from cache.
+        # Let's check get_cached_keys implementation again.
+        
+        # Actually, get_cached_keys loads the full list from JSON first.
+        # We can just load the JSON directly or add a mode to get_cached_keys.
+        # Or better, let's just use the cache loading logic here or make get_cached_keys return all if a specific flag is set.
+        
+        # But wait, get_cached_keys(category=None) returns categories.
+        # If I pass a category that matches everything? No.
+        
+        # Let's modify get_cached_keys to support returning ALL keys if requested, 
+        # OR just duplicate the simple load logic here since it's cleaner.
+        
+        if not os.path.exists(self.cache_path):
+             return set(self.update_keys_cache())
+             
+        try:
+            with open(self.cache_path, 'r') as f:
+                keys = json.load(f)
+            return set(keys)
+        except (json.JSONDecodeError, IOError):
+            return set(self.update_keys_cache())
+
+    def update_keys_cache(self) -> List[str]:
+        """
+        Scan the database for all unique keys and update the cache file.
+        Returns the list of keys.
+        """
+        keys = list(self._scan_all_keys_from_db())
+        keys.sort()
+        
+        try:
+            with open(self.cache_path, 'w') as f:
+                json.dump(keys, f)
+        except Exception as e:
+            print(f"Warning: Failed to write keys cache: {e}")
+            
+        return keys
+
+    def get_cached_keys(self, category: str = None, refresh: bool = False) -> List[str]:
+        """
+        Get keys from cache.
+        If category is None, returns a list of unique prefixes (e.g. "EXIF", "IPTC").
+        If category is provided, returns keys matching that prefix (e.g. "EXIF:Model").
+        """
+        keys = []
+        
+        # 1. Load Keys
+        if refresh or not os.path.exists(self.cache_path):
+            keys = self.update_keys_cache()
+        else:
+            try:
+                with open(self.cache_path, 'r') as f:
+                    keys = json.load(f)
+            except (json.JSONDecodeError, IOError):
+                keys = self.update_keys_cache()
+                
+        # 2. Filter/Process
+        if category:
+            # Return keys belonging to the category
+            # Category is typically a prefix ending with ":" like "EXIF" -> "EXIF:"
+            # But the user might pass "EXIF" or "EXIF:"
+            prefix = category if category.endswith(":") else f"{category}:"
+            filtered_keys = [k for k in keys if k.startswith(prefix)]
+            return filtered_keys
+        else:
+            # Return unique categories (prefixes)
+            categories = set()
+            for k in keys:
+                if ":" in k:
+                    # "EXIF:Model" -> "EXIF"
+                    cat = k.split(":")[0]
+                    categories.add(cat)
+                else:
+                    # "Model" -> "General" or just keep it?
+                    # The user request said "customise these keys. they have two parts split with ':'"
+                    # So we assume most have ":". If not, maybe put them in "Other"?
+                    # Or just return them as is?
+                    # Let's put them in "General" or just list them if they are top level.
+                    # Actually, if we return categories, we should probably return "General" for those without ":".
+                    categories.add("General")
+            
+            cat_list = list(categories)
+            cat_list.sort()
+            return cat_list
 
     def find_similar_keys(self, search_key: str, n: int = 5) -> List[str]:
         """
